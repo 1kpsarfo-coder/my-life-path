@@ -155,6 +155,34 @@
     .tools .btn{padding:7px 11px;font-size:12px}
   }
   @media(max-width:380px){.stats{grid-template-columns:1fr}}
+
+  /* Mobile: stacked cards instead of horizontal-scroll tables */
+  @media(max-width:640px){
+    .tscroll{overflow-x:visible}
+    .tscroll table,.tscroll tbody,.tscroll tr,.tscroll td{display:block;width:100%}
+    .tscroll table{min-width:0}
+    .tscroll thead{display:none}
+    .tscroll tr{border:1px solid var(--line2);border-radius:12px;padding:11px 13px;margin-bottom:10px;background:var(--bg)}
+    .tscroll td{border:none;padding:5px 0;display:flex;justify-content:space-between;align-items:center;gap:14px;text-align:right;min-width:0}
+    .tscroll td::before{content:attr(data-label);color:var(--muted);font-weight:600;font-size:10.5px;
+      text-transform:uppercase;letter-spacing:.3px;text-align:left;flex:none;white-space:nowrap}
+    .tscroll td[contenteditable]:empty::before{content:attr(data-label);opacity:1}
+    .tscroll td:first-child{display:block;text-align:left;font-weight:700;color:var(--head);font-size:14px;
+      margin-bottom:5px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+    .tscroll td:first-child::before{display:none}
+    .tscroll td.delrow{justify-content:flex-end;padding-top:8px}
+    .tscroll td.delrow::before{display:none}
+
+    /* habit table: compact 7-day row, no scroll */
+    .habit-table,.habit-table tbody,.habit-table tr{display:block;width:100%;min-width:0}
+    .habit-table thead{display:none}
+    .habit-table tr{border:1px solid var(--line2);border-radius:12px;padding:11px 12px;margin-bottom:10px;
+      background:var(--bg);display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px}
+    .habit-table td{border:none;padding:0}
+    .habit-table td:first-child{flex:1 0 100%;text-align:left;font-weight:700;color:var(--head);margin-bottom:8px}
+    .habit-table td:not(:first-child){flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+    .habit-table td:not(:first-child)::before{content:attr(data-label);font-size:10px;color:var(--muted);font-weight:600}
+  }
 </style>
 </head>
 <body>
@@ -376,18 +404,19 @@
       const tr=document.createElement('tr');
       for(let i=0;i<cfg.cells;i++){
         const td=document.createElement('td');td.contentEditable=true;td.dataset.ph=cfg.ph[i]||'';
+        td.dataset.label=cfg.ph[i]||'';
         td.textContent=row['c'+i]||'';
         td.oninput=()=>{row['c'+i]=td.textContent;save();};
         tr.appendChild(td);
       }
       tr.appendChild(statusCell(id,ri,cfg.statusCycle));
-      const dtd=document.createElement('td');const db=document.createElement('button');
+      const dtd=document.createElement('td');dtd.className='delrow';const db=document.createElement('button');
       db.className='del';db.innerHTML=icon('x');db.onclick=()=>{state[id].splice(ri,1);save();renderTable(id);};
       dtd.appendChild(db);tr.appendChild(dtd);tb.appendChild(tr);
     });
   }
   function statusCell(id,ri,cycle){
-    const td=document.createElement('td');const row=state[id][ri];
+    const td=document.createElement('td');td.dataset.label='Status';const row=state[id][ri];
     let val=row.status!=null?row.status:cycle[0];
     const wrap=document.createElement('span');
     function paint(){const cls=POS.includes(val)?'dot-ok':CAUTION.includes(val)?'dot-warn':'dot-tbd';
@@ -416,7 +445,7 @@
     HABITS.forEach((h,hi)=>{
       const tr=document.createElement('tr');const name=document.createElement('td');name.textContent=h;tr.appendChild(name);
       for(let d=0;d<7;d++){
-        const td=document.createElement('td');const cb=document.createElement('input');
+        const td=document.createElement('td');td.dataset.label=['M','T','W','T','F','S','S'][d];const cb=document.createElement('input');
         cb.type='checkbox';cb.className='chk';const key=hi+'_'+d;cb.checked=!!state.habits[key];
         cb.onchange=()=>{state.habits[key]=cb.checked;save();};
         td.appendChild(cb);tr.appendChild(td);
